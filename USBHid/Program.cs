@@ -1,6 +1,8 @@
 ﻿/*
 https://github.com/mikeobrien/HidLibrary/wiki
 
+In progress!!!
+
 - 7
 */
 
