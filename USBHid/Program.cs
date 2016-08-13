@@ -1,128 +1,73 @@
 ﻿/*
-https://github.com/mikeobrien/HidLibrary/wiki
+https://github.com/mikeobrien/HidLibrary/wiki - There is some issues on this.
 
-In progress!!!
+Credits for the USB HID Lib:
+http://www.codeproject.com/Tips/530836/Csharp-USB-HID-Interface - This one works
+
+This is for HID demo for Renesas RX62N
 
 - 7
 */
 
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HidLibrary;
 using System.Threading;
+using UsbHid;
+using UsbHid.USB.Classes.Messaging;
 
 namespace USBHid
 {
     class Program
     {
-
-        static HidDevice _device;
-
-        static HidReport getHidReport()
-        {
-            return new HidReport(17);
-        }
-
-        static async void ReadReport()
-        {
-            var dev = await _device.ReadAsync(0);
-        }
-
-        static readonly object lockobj = new object();
-
-        static void ThreadReadReport()
-        {
-            while(true)
-            {
-                lock(lockobj)
-                {
-                    var d = _device.ReadReport(200);
-                    if(d.ReadStatus == HidDeviceData.ReadStatus.Success && _device.IsConnected)
-                    {
-                        //if (!_device.IsConnected) { return; }
-                        Console.WriteLine("Pressed: " + (int)d.Data[1]);
-
-                    }
-                }
-                Thread.Sleep(50);
-            }
-        }
+        static UsbHidDevice hiddevice;
 
         static void Main(string[] args)
         {
-            _device = HidDevices.Enumerate(0x045B, 0x2013).FirstOrDefault();
+            hiddevice = new UsbHidDevice(0x045B, 0x2013);
+            hiddevice.Connect();
 
-            if (_device != null)
+            if (hiddevice != null)
             {
-                _device.OpenDevice(DeviceMode.NonOverlapped, DeviceMode.NonOverlapped, ShareMode.ShareRead);
+                hiddevice.DataReceived += Hiddevice_DataReceived;
+                hiddevice.OnConnected += Hiddevice_OnConnected;
+                hiddevice.OnDisConnected += Hiddevice_OnDisConnected;
 
-                _device.Inserted += DeviceAttachedHandler;
-                _device.Removed += DeviceRemovedHandler;
-
-                _device.MonitorDeviceEvents = true;
-
-                //_device.Read(ReadCallback, 200);
-                //_device.ReadReport(OnReport);
-
-                Thread t = new Thread(new ThreadStart(ThreadReadReport));
-                t.IsBackground = true;
-                //t.Start();
-
-                Console.WriteLine("Reader found, press any key to exit.");
+                Console.WriteLine("Renesas RX62N found, press any key to exit.");
 
                 while (true)
                 {
-
-                    _device.CloseDevice();
-                    _device.OpenDevice();
                     var r = Console.ReadKey();
                     Console.WriteLine("");
 
-                    lock(lockobj)
+                    if (r.Key == ConsoleKey.Q)
                     {
-                        if (r.Key == ConsoleKey.Q)
-                        {
-                            break;
-                        }
-                        if (r.Key == ConsoleKey.A)
-                        {
-                            var h = getHidReport();
-                            h.Data[0] = 0x01;
-                            _device.WriteReport(h);
-                            Console.WriteLine("Toggle LED");
-                        }
-                        if (r.Key == ConsoleKey.B)
-                        {
-                            var h = getHidReport();
-                            h.Data[0] = 0x04;
-                            h.Data[1] = 0x30;
-                            h.Data[2] = 0x31;
-                            _device.WriteReport(h);
-                            Console.WriteLine("Update LCD");
-                        }
-                        if (r.Key == ConsoleKey.C)
-                        {
-                            var h = getHidReport();
-                            h.Data[0] = 0x02;
-                            _device.WriteReport(h);
-                            var readDev = _device.Read();
-                            for (int ctr = 0; ctr < readDev.Data.Length; ctr++)
-                            {
-                                Console.Write((int)readDev.Data[ctr] + ",");
-                            }
-
-                            Console.WriteLine("Read ADC");
-                        }
+                        break;
                     }
-                    Thread.Sleep(20);
+
+                    byte[] b = new byte[17];
+
+                    if (r.Key == ConsoleKey.A)
+                    {
+                        CommandMessage cmdMsg = new CommandMessage(0x01, b);
+                        hiddevice.SendMessage(cmdMsg);
+                        Console.WriteLine("Toggle LED");
+                    }
+                    if (r.Key == ConsoleKey.B)
+                    {
+                        b[0] = 0x30;
+                        b[1] = 0x31;
+                        CommandMessage cmdMsg = new CommandMessage(0x04, b);
+                        hiddevice.SendMessage(cmdMsg);
+                        Console.WriteLine("Update LCD");
+                    }
+                    if (r.Key == ConsoleKey.C)
+                    {
+                        CommandMessage cmdMsg = new CommandMessage(0x02, b);
+                        hiddevice.SendMessage(cmdMsg);
+                        Console.WriteLine("Read ADC");
+                    }
                 }
-
-
-                _device.CloseDevice();
+                hiddevice.Dispose();
             }
             else
             {
@@ -131,33 +76,24 @@ namespace USBHid
             }
         }
 
-        //static void ReadCallback(HidDeviceData data)
-        //{
-        //    if (!_device.IsConnected) { return; }
-
-        //    Console.WriteLine("Pressed: " + (int)data.Data[0]);
-        //}
-
-        private static void OnReport(HidReport report)
-        {
-            if (!_device.IsConnected) { return; }
-
-            Console.WriteLine("Pressed: " + (int)report.Data[0]);
-
-            _device.ReadReport(OnReport); // call again to wait for another report
-        }
-
-        private static void DeviceAttachedHandler()
-        {
-            Console.WriteLine("Device attached.");
-            //_device.ReadReport(OnReport);
-        }
-
-        private static void DeviceRemovedHandler()
+        private static void Hiddevice_OnDisConnected()
         {
             Console.WriteLine("Device removed.");
         }
 
+        private static void Hiddevice_OnConnected()
+        {
+            Console.WriteLine("Device attached.");
+        }
 
+        private static void Hiddevice_DataReceived(byte[] data)
+        {
+            for (int ctr = 0; ctr < data.Length; ctr++)
+            {
+                Console.Write((int)data[ctr] + ",");
+            }
+            Console.WriteLine("");
+        }
+        
     }
 }
