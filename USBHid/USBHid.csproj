@@ -39,6 +39,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,12 +48,45 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CSharpUsbHidLib\UsbHidDevice.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Classes\Constants.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Classes\DeviceChangeNotifier.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CSharpUsbHidLib\USB\Classes\DeviceCommunication.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Classes\DeviceDiscovery.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Classes\DllWrappers\Hid.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Classes\DllWrappers\Kernel32.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Classes\DllWrappers\SetupApi.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Classes\DllWrappers\User32.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Classes\Messaging\CommandMessage.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Classes\Messaging\IMesage.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\DevBroadcastDeviceinterface.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\DevBroadcastDeviceinterface1.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\DevBroadcastHdr.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\DeviceInformationStructure.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\HiddAttributes.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\HidpCaps.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\HidpReportType.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\HidpValueCaps.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\NotRange.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\Overlapped.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\PspDeviceInterfaceDetailData.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\Range.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\SecurityAttributes.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\SpDeviceInterfaceData.cs" />
+    <Compile Include="CSharpUsbHidLib\USB\Structures\SyncObjT.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CSharpUsbHidLib\USB\Classes\DeviceChangeNotifier.resx">
+      <DependentUpon>DeviceChangeNotifier.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
